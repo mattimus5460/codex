@@ -1,44 +1,64 @@
 pragma solidity ^0.4.24;
 
-contract Codex {
+contract CodexCreator {
+    address codexOwner;
 
-    /*
-        Region Management
-        - ability to edit/delete bad information
-        - need roles for previous
-        - multiple actors for each role
-
-        Validating existing trees
-        - tree property owner
-        - allow many people to validate the existing tree data
-
-        Claiming trees as an owner
-        - tree property owner needs a way to
-
-        Teams
-        - trained users can go out and add new or validate existing trees
-
-        Marking trees public or private
-        - public trees will be seen by more users and has more info available
-        - private trees will only have access by the owners and creators
-        -
-
-    */
-
-
-
-    //Info Gathered From Trees
-    address owner;
-
-    function Codex() public {
-        owner = msg.sender;
+    constructor() public {
+        codexOwner = msg.sender;
     }
 
     modifier onlyOwner {
-        require(msg.sender == owner);
+        require(msg.sender == codexOwner);
         _;
     }
+}
 
+contract CodexRegionAccessControl is CodexCreator {
+
+    /*
+       Region Management
+       - create new regions
+       - create roles for regions
+       - manage addresses for each role
+       - ability to edit/delete bad information
+
+       */
+
+    /// Region Data Struct
+    struct Region{
+        string name;
+        string state;
+        address[] managers;
+        address[] teamMembers;
+        address createdBy; // "owner"
+    }
+
+    /// Region data storage
+    Region[] public regions;
+
+    function _createRegion(string _name, string _state, address[] _managers, address[] _teamMembers){
+
+        Region memory _region = Region({
+            name: _name,
+            state : _state,
+            managers : _managers,
+            teamMembers : _teamMembers,
+            createdBy : msg.sender
+        });
+
+        // Add to regions list storage
+        uint256 newRegionArrayId = regions.push(_region) -1;
+
+        // set id to array id mapping
+        regionIdToArrayIds[regionId] = newRegionArrayId;
+
+    }
+
+}
+
+contract CodexBase is CodexRegionAccessControl {
+
+    /// Tree Data Struct
     struct TreeInfo {
         uint32 latlong;
         string family;
@@ -61,9 +81,13 @@ contract Codex {
 
     }
 
+    /// Tree Storage
+    mapping(string => TreeInfo[]) treesByRegionId;
+
+    /// Tree ownership address mappings
     //treeId keeps track of TreeInfo from setTreeInfo function below
-    mapping(uint32 => TreeInfo) trees;
-    uint32[] private treeId;
+    mapping(address => TreeInfo) trees;
+    uint256[] private treeIds;
 
     //Attempting to apply ownership to trees input through setTreeInfo
     mapping(uint32 => address) treeOwner;
@@ -74,6 +98,8 @@ contract Codex {
     //Aiming to find out how to assing ownership as well as transfer of ownership maybe in another contract?
     //trees[x] = { tree struct } and treesToOwner[x] = addressOfOwner
 
+
+    /// Create Tree
     //Allows 32 digit number input that pairs with TreeInfo. Because we will have several contracts we might be
     //able allow users to input their trees latitude/longitude consecutively. ie: 332319111153414 takes you to a tree here: https://bit.ly/2sh52x3
     function setTreeInfo(uint32 _latlong, string _family, string _genus, string _species, uint8 _height, uint8 _canopy, uint8 _dab, uint8 _dbh, uint8 _scaffold, string _fruit, string _leaves, string _water, string _soil) onlyOwner public {
@@ -96,9 +122,58 @@ contract Codex {
         treeId.push(_latlong) - 1;
     }
 
+
+    /// Modify Tree
+
+
+}
+
+contract CodexOwnership is CodexBase, ERC721 {
+    /*
+    Claiming trees as an owner
+    - tree property owner needs a way to
+    */
+    /*
+    Marking trees public or private
+    - public trees will be seen by more users and has more info available
+    - private trees will only have access by the owners and creators
+    -
+  */
+
+
+}
+
+contract CodexValidationControl is CodexOwnership {
+/*
+    Validating existing trees
+    - tree property owner
+    - allow many people to validate the existing tree data
+
+    Tree Owner
+    - can edit their tree data but will undo validation state
+    - can make trees public or private
+
+    Teams
+    - trained users can go out and add new or validate existing trees
+
+    Team Management
+    - ability to manage addresses of verified actors in a region
+ */
+ }
+
+ contract CodexCore is CodexValidationControl {
+
+     /*
+        getTree functions
+        - retrieve trees by lat/long
+        - retrieve all trees for region
+
+    */
+
+
     //Calls all existing tree info within contract through _latlong
-    function getTrees() view public returns (uint32[]) {
-        return treeId;
+    function getTreeIds() view public returns (uint256[]) {
+        return treeIds;
     }
 
     //Pulls all TreeInfo from a tree. Must keep private due to stack limits
@@ -118,26 +193,27 @@ contract Codex {
 
 }
 
-//contract ERC721 is Codex{
-// Required methods
-//   function totalSupply() public view returns (uint256 total);
-//   function balanceOf(address _owner) public view returns (uint256 balance);
-//   function ownerOf(uint256 _tokenId) external view returns (address owner);
-//   function approve(address _to, uint256 _tokenId) external;
-//   function transfer(address _to, uint256 _tokenId) external;
-//   function transferFrom(address _from, address _to, uint256 _tokenId) external;
+contract ERC721 {
 
-// Events
-// event Transfer(address from, address to, uint256 tokenId);
-//event Approval(address owner, address approved, uint256 tokenId);
+    /// Required methods
+   function totalSupply() public view returns (uint256 total);
+   function balanceOf(address _owner) public view returns (uint256 balance);
+   function ownerOf(uint256 _tokenId) external view returns (address owner);
+   function approve(address _to, uint256 _tokenId) external;
+   function transfer(address _to, uint256 _tokenId) external;
+   function transferFrom(address _from, address _to, uint256 _tokenId) external;
 
-// Optional
-// function name() public view returns (string name);
-// function symbol() public view returns (string symbol);
-// function tokensOfOwner(address _owner) external view returns (uint256[] tokenIds);
-// function tokenMetadata(uint256 _tokenId, string _preferredTransport) public view returns (string infoUrl);
+    /// Events
+    event Transfer(address from, address to, uint256 tokenId);
+    event Approval(address owner, address approved, uint256 tokenId);
 
-// ERC-165 Compatibility (https://github.com/ethereum/EIPs/issues/165)
-//function supportsInterface(bytes4 _interfaceID) external view returns (bool);
-//}
+    /// Optional
+    function name() public view returns (string name);
+    function symbol() public view returns (string symbol);
+    function tokensOfOwner(address _owner) external view returns (uint256[] tokenIds);
+    function tokenMetadata(uint256 _tokenId, string _preferredTransport) public view returns (string infoUrl);
+
+    /// ERC-165 Compatibility (https://github.com/ethereum/EIPs/issues/165)
+    function supportsInterface(bytes4 _interfaceID) external view returns (bool);
+}
 
