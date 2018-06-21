@@ -1,4 +1,4 @@
-var Codex = artifacts.require("./Codex.sol");
+var Codex = artifacts.require("CodexCore.sol");
 
 module.exports = function(deployer) {
   deployer.deploy(Codex);

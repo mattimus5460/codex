@@ -1,32 +1,25 @@
-var Codex = artifacts.require("./Codex.sol");
+var CodexCore = artifacts.require("./CodexCore.sol");
 
-contract('Codex', function(accounts) {
-  it("should put 10000 Codex in the first account", function() {
-    return Codex.deployed().then(function(instance) {
-      return instance.getBalance.call(accounts[0]);
-    }).then(function(balance) {
-      assert.equal(balance.valueOf(), 10000, "10000 wasn't in the first account");
+contract('CodexCore', function (accounts) {
+    it("should have owner be the tx.origin account", function () {
+        return CodexCore.deployed().then(function (instance) {
+            return instance.codexOwner();
+        }).then(function (value) {
+            assert.equal(value, accounts[0], "owner did not match creator");
+        });
     });
-  });
-  it("should call a function that depends on a linked library", function() {
-    var meta;
-    var metaCoinBalance;
-    var metaCoinEthBalance;
 
-    return Codex.deployed().then(function(instance) {
-      meta = instance;
-      return meta.getBalance.call(accounts[0]);
-    }).then(function(outCoinBalance) {
-      metaCoinBalance = outCoinBalance.toNumber();
-      return meta.getBalanceInEth.call(accounts[0]);
-    }).then(function(outCoinBalanceEth) {
-      metaCoinEthBalance = outCoinBalanceEth.toNumber();
-    }).then(function() {
-      assert.equal(metaCoinEthBalance, 2 * metaCoinBalance, "Library function returned unexpeced function, linkage may be broken");
+    it("create a region with valid fields", function () {
+        var codex;
+        return CodexCore.deployed().then(function (instance) {
+            codex = instance;
+            return codex._createRegion.call("Test County Name","Test State Name", [], []);
+        }).then(function (newRegionId) {
+            return assert.equal(0, newRegionId, "region id was incorrect");
+        })
     });
-  });
 
-  it("should send coin correctly", function() {
+ /*   it("should send coin correctly", function () {
     var meta;
 
     //    Get initial balances of first and second account.
@@ -40,25 +33,25 @@ contract('Codex', function(accounts) {
 
     var amount = 10;
 
-    return Codex.deployed().then(function(instance) {
-      meta = instance;
-      return meta.getBalance.call(account_one);
-    }).then(function(balance) {
-      account_one_starting_balance = balance.toNumber();
-      return meta.getBalance.call(account_two);
-    }).then(function(balance) {
-      account_two_starting_balance = balance.toNumber();
-      return meta.sendCoin(account_two, amount, {from: account_one});
-    }).then(function() {
-      return meta.getBalance.call(account_one);
-    }).then(function(balance) {
-      account_one_ending_balance = balance.toNumber();
-      return meta.getBalance.call(account_two);
-    }).then(function(balance) {
-      account_two_ending_balance = balance.toNumber();
+    return Codex.deployed().then(function (instance) {
+        meta = instance;
+        return meta.getBalance.call(account_one);
+    }).then(function (balance) {
+        account_one_starting_balance = balance.toNumber();
+        return meta.getBalance.call(account_two);
+    }).then(function (balance) {
+        account_two_starting_balance = balance.toNumber();
+        return meta.sendCoin(account_two, amount, {from: account_one});
+    }).then(function () {
+        return meta.getBalance.call(account_one);
+    }).then(function (balance) {
+        account_one_ending_balance = balance.toNumber();
+        return meta.getBalance.call(account_two);
+    }).then(function (balance) {
+        account_two_ending_balance = balance.toNumber();
 
-      assert.equal(account_one_ending_balance, account_one_starting_balance - amount, "Amount wasn't correctly taken from the sender");
-      assert.equal(account_two_ending_balance, account_two_starting_balance + amount, "Amount wasn't correctly sent to the receiver");
+        assert.equal(account_one_ending_balance, account_one_starting_balance - amount, "Amount wasn't correctly taken from the sender");
+        assert.equal(account_two_ending_balance, account_two_starting_balance + amount, "Amount wasn't correctly sent to the receiver");
     });
-  });
+});*/
 });
