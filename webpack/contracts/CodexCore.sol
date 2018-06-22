@@ -18,9 +18,9 @@ contract CodexRegionAccessControl is CodexCreator {
     /*
        Region Management
        - create new regions
-       - create roles for regions
+       - manage roles for regions
        - manage addresses for each role
-       - ability to edit/delete bad information
+       - designated addresses have ability to edit/delete bad information
 
        */
 
@@ -36,6 +36,7 @@ contract CodexRegionAccessControl is CodexCreator {
     /// Region data storage
     Region[] public regions;
 
+    /// Create Region
     function _createRegion (string _name, string _state, address[] _managers, address[] _teamMembers) public returns (uint256) {
 
         Region memory _region = Region({
@@ -76,51 +77,82 @@ contract CodexBase is CodexRegionAccessControl {
         //Environment//
         string water;
         string soil;
+        address createdBy;
 
     }
+    /// Option #1
+    /// Tree data storage
+    TreeInfo[] public trees;
 
-    /// Tree Storage
-    mapping(uint256 => TreeInfo[]) treesByRegionId;
+    /// Tree Ids for region ids
+    mapping(uint256 => uint256) treeIdsByRegionId;
 
-    /*
     /// Tree ownership address mappings
-    //treeId keeps track of TreeInfo from setTreeInfo function below
-    mapping(address => TreeInfo) trees;
-    uint256[] private treeIds;
+    mapping(address => uint256[]) treeOwners;
 
-    //Attempting to apply ownership to trees input through setTreeInfo
-    mapping(uint32 => address) treeOwner;
-    address[] public treeInfoToOwner;
 
-    mapping(address => Codex) treesOwned;
+    /// Option #2
+    /// Tree data storage
+    mapping(uint256 => TreeInfo[]) public treesByRegionId;
 
-    //Aiming to find out how to assing ownership as well as transfer of ownership maybe in another contract?
-    //trees[x] = { tree struct } and treesToOwner[x] = addressOfOwner
+    /// Tree ownership address mappings
+    /// address -> regionIds -> treeIds
+    mapping(address => mapping(uint256 => uint256[])) treeOwnersByRegionId;
+
+
+    /// TODO Store Tree Ids by lat/long mappings
+
 
 
     /// Create Tree
-    //Allows 32 digit number input that pairs with TreeInfo. Because we will have several contracts we might be
-    //able allow users to input their trees latitude/longitude consecutively. ie: 332319111153414 takes you to a tree here: https://bit.ly/2sh52x3
-    function setTreeInfo(uint32 _latlong, string _family, string _genus, string _species, uint8 _height, uint8 _canopy, uint8 _dab, uint8 _dbh, uint8 _scaffold, string _fruit, string _leaves, string _water, string _soil) onlyOwner public {
-        var tree = trees[_latlong];
+    /// TODO enforce a region role
+    function createBasicTreeInfo(uint32 _latlong, string _family, string _genus, string _species)
+    public returns (uint256) {
 
-        tree.family = _family;
-        tree.genus = _genus;
-        tree.species = _species;
-        tree.height = _height;
-        tree.canopy = _canopy;
-        tree.dab = _dab;
-        tree.dbh = _dbh;
-        tree.scaffold = _scaffold;
-        // tree.tertiary = _tertiary; excluded due to stack limits, gotta find a way to get this in //
-        tree.fruit = _fruit;
-        tree.leaves = _leaves;
-        tree.water = _water;
-        tree.soil = _soil;
-        //
-        treeId.push(_latlong) - 1;
+        TreeInfo memory _treeInfo = TreeInfo({
+            family: _family,
+            latlong : _latlong,
+            genus : _genus,
+            species : _species,
+            createdBy : msg.sender
+        });
+
+        // Add to tree list storage
+        uint256 newTreeInfoArrayId = trees.push(_treeInfo) -1;
+
+        return newTreeInfoArrayId;
     }
-    */
+
+
+/*
+    /// This function fails due to stack limits at 16 parameters, we need to break this into multiple functions
+    function createTreeInfo(uint32 _latlong, string _family, string _genus, string _species,
+        uint8 _height, uint8 _canopy, uint8 _dab, uint8 _dbh, uint8 _scaffold, uint8 _tertiary,
+        string _fruit, string _leaves, string _water, string _soil)  public returns (uint256) {
+
+        TreeInfo memory _treeInfo = TreeInfo({
+            family: _family,
+            latlong : _latlong,
+            genus : _genus,
+            species : _species,
+            height : _height,
+            canopy : _canopy,
+            dab : _dab,
+            dbh : _dbh,
+            scaffold : _scaffold,
+            tertiary : _tertiary,
+            fruit : _fruit,
+            leaves : _leaves,
+            water : _water,
+            soil : _soil,
+            createdBy : msg.sender
+            });
+
+        // Add to tree list storage
+        uint256 newTreeInfoArrayId = trees.push(_treeInfo) -1;
+
+        return newTreeInfoArrayId;
+    }*/
 
     /// Modify Tree
 
@@ -155,13 +187,11 @@ contract ERC721 {
 contract CodexOwnership is CodexBase { //}, ERC721 {
     /*
     Claiming trees as an owner
-    - tree property owner needs a way to
-    */
-    /*
+    - tree property owner needs a way to claim trees
+
     Marking trees public or private
     - public trees will be seen by more users and has more info available
     - private trees will only have access by the owners and creators
-    -
   */
 
 
@@ -187,17 +217,11 @@ contract CodexValidationControl is CodexOwnership {
  }
 
  contract CodexCore is CodexValidationControl {
-
      /*
         getTree functions
         - retrieve trees by lat/long
         - retrieve all trees for region
-
-
-    //Calls all existing tree info within contract through _latlong
-    function getTreeIds() view public returns (uint256[]) {
-        return treeIds;
-    }
+    */
 
     //Pulls all TreeInfo from a tree. Must keep private due to stack limits
     function getTree(uint32 _uint32) view private returns (string, string, string, uint8, uint8, uint8, uint8, uint8, string, string, string, string) {
@@ -211,9 +235,8 @@ contract CodexValidationControl is CodexOwnership {
 
     //Calls up a count of all trees listed in contract
     function countTrees() view public returns (uint) {
-        return treeId.length;
+        return trees.length;
     }
-    */
 
 }
 
