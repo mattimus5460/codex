@@ -1,5 +1,6 @@
 pragma solidity ^0.4.24;
 
+// The original version which shows all of the ideas but has since been refactored and simplified
 contract CodexCreator {
     address public codexOwner;
 
