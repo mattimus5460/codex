@@ -3,7 +3,7 @@ var CodexCore = artifacts.require("./CodexCore.sol");
 contract('CodexCore', function (accounts) {
     it("should have owner be the tx.origin account", function () {
         return CodexCore.deployed().then(function (instance) {
-            return instance.codexOwner();
+            return instance.owner();
         }).then(function (value) {
             assert.equal(value, accounts[0], "owner did not match creator");
         });
