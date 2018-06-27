@@ -1,70 +1,17 @@
 pragma solidity ^0.4.24;
 
-contract CodexCreator {
-    address public owner;
+import "./CodexOwner.sol";
+import "./CodexRegion.sol";
 
-    /**
-    * @dev The Ownable constructor sets the original `owner` of the contract to the sender
-    * account.
-    */
-    constructor() public {
-        owner = msg.sender;
-    }
-
-
-    /**
-     * @dev Throws if called by any account other than the owner.
-     */
-    modifier onlyOwner() {
-        require(msg.sender == owner);
-        _;
-    }
-
-
-    /**
-     * @dev Allows the current owner to transfer control of the contract to a newOwner.
-     * @param newOwner The address to transfer ownership to.
-     */
-    function transferOwnership(address newOwner) onlyOwner {
-        if (newOwner != address(0)) {
-            owner = newOwner;
-        }
-    }
-}
-
-contract CodexRegionAccessControl is CodexCreator {
-
-    /*
-       Region Management
-       - create new regions
-       - manage roles for regions
-       - manage addresses for each role
-       - designated addresses have ability to edit/delete bad information
-
-       */
-
-    /// Region Data Struct
-    struct Region{
-        string name;
-        string state;
-        address[] managers;
-        address[] teamMembers;
-        address createdBy; // "owner"
-    }
+contract CodexRegionManager is CodexOwner{
 
     /// Region data storage
-    Region[] public regions;
+    address[] public regions;
 
     /// Create Region
-    function _createRegion (string _name, string _state, address[] _managers, address[] _teamMembers) public returns (uint256) {
+    function _createRegion (string _name, string _state) public onlyOwner returns (uint256) {
 
-        Region memory _region = Region({
-            name: _name,
-            state : _state,
-            managers : _managers,
-            teamMembers : _teamMembers,
-            createdBy : msg.sender
-        });
+        CodexRegion _region = new CodexRegion(_name, _state);
 
         // Add to regions list storage
         uint256 newRegionArrayId = regions.push(_region) -1;
@@ -72,37 +19,41 @@ contract CodexRegionAccessControl is CodexCreator {
         return newRegionArrayId;
     }
 
+    function regionCount() view public returns (uint) {
+        return regions.length;
+    }
+
+    function getCodexRegion(uint index) public returns (CodexRegion) {
+        return CodexRegion(regions[index]);
+    }
+
+    function getCodexRegionCreatedBy(uint index) public returns (address) {
+        return CodexRegion(regions[index]).createdBy();
+    }
+
+    function getCodexRegionCEO(uint index) public returns (address) {
+        return CodexRegion(regions[index]).ceoAddress();
+    }
+
+    function getCodexRegionTreesCount(uint index) view public returns (uint) {
+        return CodexRegion(regions[index]).treesCount();
+    }
 }
 
-contract CodexBase is CodexRegionAccessControl {
 
-    /// Option #1
-    /// Tree data storage
-    string[] public trees;
-
-    /// Tree Ids for region ids
-    mapping(uint256 => uint256) treeIdsByRegionId;
-
-    /// Tree ownership address mappings
-    mapping(address => uint256[]) treeOwners;
-
-
-    /// TODO Store Tree Ids by lat/long mappings
-
+contract CodexBase is CodexRegionManager {
 
     /// Create Tree
-    /// TODO enforce a region role
-    function createTree(string _treeId)
+    function _createTree(string _treeId, uint regionId)
     public returns (uint256) {
 
         // Add to tree list storage
-        uint256 newTreeInfoArrayId = trees.push(_treeId) -1;
+        uint256 newTreeInfoArrayId = CodexRegion(regions[regionId]).createTree(_treeId);
 
         return newTreeInfoArrayId;
     }
 
     /// Modify Tree
-
 
 }
 
@@ -140,6 +91,7 @@ contract CodexValidationControl is CodexOwnership {
  }
 
  contract CodexCore is CodexValidationControl {
+
 
      /*
         getTree functions

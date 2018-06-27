@@ -1,4 +1,6 @@
 var CodexCore = artifacts.require("./CodexCore.sol");
+var CodexRegion = artifacts.require("./CodexRegion.sol");
+
 
 contract('CodexCore', function (accounts) {
     it("should have owner be the tx.origin account", function () {
@@ -13,45 +15,45 @@ contract('CodexCore', function (accounts) {
         var codex;
         return CodexCore.deployed().then(function (instance) {
             codex = instance;
-            return codex._createRegion.call("Test County Name","Test State Name", [], []);
+            return codex._createRegion.call("Test County Name","Test State Name");
         }).then(function (newRegionId) {
             return assert.equal(0, newRegionId, "region id was incorrect");
         })
     });
 
-    it("should send coin correctly", function () {
-        var meta;
+    it("region should have createdBy as sender", function () {
+        var codex;
+        return CodexCore.deployed().then(function (instance) {
+            codex = instance;
+            codex._createRegion("Test County Name","Test State Name");
+            return codex.getCodexRegionCreatedBy.call(0);
+        }).then(function (region) {
+            return assert.equal(accounts[0], region, "createdBy was incorrect");
+        })
 
-        //    Get initial balances of first and second account.
-        var account_one = accounts[0];
-        var account_two = accounts[1];
+    });
 
-        var account_one_starting_balance;
-        var account_two_starting_balance;
-        var account_one_ending_balance;
-        var account_two_ending_balance;
+    it("region should have ceoAddress as sender", function () {
+        var codex;
+        return CodexCore.deployed().then(function (instance) {
+            codex = instance;
+            codex._createRegion("Test County Name","Test State Name");
+            return codex.getCodexRegionCEO.call(0);
+        }).then(function (region) {
+            return assert.equal(accounts[0], region, "ceoAddress was incorrect");
+        })
 
-        var amount = 10;
+    });
 
-        return Codex.deployed().then(function (instance) {
-            meta = instance;
-            return meta.getBalance.call(account_one);
-        }).then(function (balance) {
-            account_one_starting_balance = balance.toNumber();
-            return meta.getBalance.call(account_two);
-        }).then(function (balance) {
-            account_two_starting_balance = balance.toNumber();
-            return meta.sendCoin(account_two, amount, {from: account_one});
-        }).then(function () {
-            return meta.getBalance.call(account_one);
-        }).then(function (balance) {
-            account_one_ending_balance = balance.toNumber();
-            return meta.getBalance.call(account_two);
-        }).then(function (balance) {
-            account_two_ending_balance = balance.toNumber();
+    it("region should add a tree to a region", function () {
+        var codex;
+        return CodexCore.deployed().then(function (instance) {
+            codex = instance;
+            codex._createTree("TestTreeId", 0);
+            return codex.getCodexRegionTreesCount(0);
+        }).then(function (regionTreeCount) {
+            return assert.equal(1, regionTreeCount, "tree count incorrect");
+        })
 
-            assert.equal(account_one_ending_balance, account_one_starting_balance - amount, "Amount wasn't correctly taken from the sender");
-            assert.equal(account_two_ending_balance, account_two_starting_balance + amount, "Amount wasn't correctly sent to the receiver");
-        });
     });
 });
