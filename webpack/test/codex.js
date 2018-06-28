@@ -21,7 +21,7 @@ contract('CodexCore', function (accounts) {
         })
     });
 
-    it("region should have createdBy as sender", function () {
+    it("should have createdBy as sender", function () {
         var codex;
         return CodexCore.deployed().then(function (instance) {
             codex = instance;
@@ -33,7 +33,7 @@ contract('CodexCore', function (accounts) {
 
     });
 
-    it("region should have ceoAddress as sender", function () {
+    it("should have ceoAddress as sender", function () {
         var codex;
         return CodexCore.deployed().then(function (instance) {
             codex = instance;
@@ -45,7 +45,7 @@ contract('CodexCore', function (accounts) {
 
     });
 
-    it("region should add a tree to a region", function () {
+    it("should add a tree to a region", function () {
         var codex;
         return CodexCore.deployed().then(function (instance) {
             codex = instance;

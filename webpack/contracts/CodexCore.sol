@@ -23,15 +23,15 @@ contract CodexRegionManager is CodexOwner{
         return regions.length;
     }
 
-    function getCodexRegion(uint index) public returns (CodexRegion) {
+    function getCodexRegion(uint index) view public returns (CodexRegion) {
         return CodexRegion(regions[index]);
     }
 
-    function getCodexRegionCreatedBy(uint index) public returns (address) {
+    function getCodexRegionCreatedBy(uint index) view public returns (address) {
         return CodexRegion(regions[index]).createdBy();
     }
 
-    function getCodexRegionCEO(uint index) public returns (address) {
+    function getCodexRegionCEO(uint index) view public returns (address) {
         return CodexRegion(regions[index]).ceoAddress();
     }
 
@@ -53,8 +53,6 @@ contract CodexBase is CodexRegionManager {
         return newTreeInfoArrayId;
     }
 
-    /// Modify Tree
-
 }
 
 
@@ -66,8 +64,11 @@ contract CodexOwnership is CodexBase {
     Marking trees public or private
     - public trees will be seen by more users and has more info available
     - private trees will only have access by the owners and creators
-  */
+    */
 
+    function _setTreeOwnerForRegion(uint _regionId, address _ownerAddress, uint _treeId) public{
+        CodexRegion(regions[_regionId]).setTreeOwner(_ownerAddress, _treeId);
+    }
 
 }
 

@@ -51,5 +51,14 @@ contract TestCodexCore {
 
   }
 
+  function testSetTreeOwner() public {
+    CodexCore codex = CodexCore(DeployedAddresses.CodexCore());
+
+    codex._setTreeOwnerForRegion(0, tx.origin, 0);
+    codex._setTreeOwnerForRegion(0, tx.origin, 1);
+
+    Assert.equal(2, codex.getCodexRegion(0).getTreesByOwner(tx.origin).length, "owner should have 2 trees");
+  }
+
 
 }

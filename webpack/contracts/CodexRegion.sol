@@ -18,7 +18,6 @@ contract CodexRegion is CodexRegionRoles {
     address[] teamMembers;
     address public createdBy;
 
-
     /// Tree data storage
     string[] public trees;
 
@@ -38,7 +37,6 @@ contract CodexRegion is CodexRegionRoles {
     }
 
     /// Create Tree
-    /// TODO enforce a region role
     function createTree(string _treeId)
     public onlyCEO returns (uint256) {
 
@@ -50,6 +48,18 @@ contract CodexRegion is CodexRegionRoles {
 
     function treesCount() view public returns (uint) {
         return trees.length;
+    }
+
+    function setTreeOwner(address _ownerAddress, uint treeId) public returns (bool){
+        require(_ownerAddress != address(0));
+
+        treeOwners[_ownerAddress].push(treeId);
+
+        return true;
+    }
+
+    function getTreesByOwner(address _ownerAddress) public view returns (uint256[]){
+        return treeOwners[_ownerAddress];
     }
 
 
