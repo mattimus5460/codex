@@ -58,6 +58,7 @@ contract TestCodexCore {
     codex._setTreeOwnerForRegion(0, tx.origin, 1);
 
     Assert.equal(2, codex.getCodexRegion(0).getTreeIdsByOwner(tx.origin).length, "owner should have 2 trees");
+    Assert.equal(tx.origin, codex.getCodexRegion(0).getOwnerByTreeId(0), "owner should match tx.origin");
   }
 
 

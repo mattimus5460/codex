@@ -81,6 +81,12 @@ contract CodexOwnership is CodexBase {
         CodexRegionManager(regions[_regionId]).setTreeOwner(_ownerAddress, _treeId);
     }
 
+    /// Get Tree Owner
+    function _getTreeOwnerForRegion(uint _regionId, uint _treeId) public view returns (address){
+        return CodexRegionManager(regions[_regionId]).getOwnerByTreeId(_treeId);
+    }
+
+
     /*
      *  This function can be used as a permissions check for tree edits
      *      to be used before any other service attempts to edit the external tree data

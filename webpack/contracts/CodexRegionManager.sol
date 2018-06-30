@@ -88,6 +88,11 @@ contract CodexRegionManager is CodexRegion {
         return allTreesForOwner[_ownerAddress];
     }
 
+    /// Get the owner for a tree
+    function getOwnerByTreeId(uint _treeId) public view returns (address){
+        return treeOwnersByTreeId[_treeId];
+    }
+
     /// get the data for a tree by tree array id
     function getTreeData(uint _treeId) public view returns (string){
         return trees[_treeId];

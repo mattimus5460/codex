@@ -63,7 +63,19 @@ contract('CodexCore', function (accounts) {
             codex = instance;
             return codex._getTreeData(0, 0);
         }).then(function (tree) {
-            return assert.equal("TestTreeId", tree, "tree count incorrect");
+            return assert.equal("TestTreeId", tree, "tree data incorrect");
+        })
+
+    });
+
+    it("should set the tree owner", function () {
+        var codex;
+        return CodexCore.deployed().then(function (instance) {
+            codex = instance;
+            codex._setTreeOwnerForRegion(0, "0xf17f52151ebef6c7334fad080c5704d77216b732", 0);
+            return codex._getTreeOwnerForRegion(0,0);
+        }).then(function (owner) {
+            return assert.equal("0xf17f52151ebef6c7334fad080c5704d77216b732", owner, "tree owner incorrect");
         })
 
     });
