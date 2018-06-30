@@ -1,19 +1,15 @@
-// Import the page's CSS. Webpack will know what to do with it.
 import "../stylesheets/app.css";
 
-// Import libraries we need.
 import { default as Web3} from 'web3';
 import { default as contract } from 'truffle-contract'
 
-// Import our contract artifacts and turn them into usable abstractions.
-import metacoin_artifacts from '../../build/contracts/Codex.json'
+import codex_artifacts from '../../build/contracts/CodexCore.json'
 
-// Codex is our usable abstraction, which we'll use through the code below.
-var MetaCoin = contract(metacoin_artifacts);
+var $ = require("jquery");
+var jQuery = require("jquery");
 
-// The following code is simple to show off interacting with your contracts.
-// As your needs grow you will likely need to change its form and structure.
-// For application bootstrapping, check out window.addEventListener below.
+var Codex = contract(codex_artifacts);
+
 var accounts;
 var account;
 
@@ -21,8 +17,10 @@ window.App = {
   start: function() {
     var self = this;
 
-    // Bootstrap the Codex abstraction for Use.
-    MetaCoin.setProvider(web3.currentProvider);
+    // Bootstrap t he Codex abstraction for Use.
+    Codex.setProvider(web3.currentProvider);
+
+    // web3.eth.contract(Codex.abi).at("0x676445b98b215367c4C8efDCAE660FE86379Cd64");
 
     // Get the initial account balance so it can be displayed.
     web3.eth.getAccounts(function(err, accs) {
@@ -40,6 +38,7 @@ window.App = {
       account = accounts[0];
 
       self.refreshBalance();
+      self.loadRegions();
     });
   },
 
@@ -49,41 +48,67 @@ window.App = {
   },
 
   refreshBalance: function() {
-    var self = this;
-
-    var meta;
-    MetaCoin.deployed().then(function(instance) {
-      meta = instance;
-      return meta.getBalance.call(account, {from: account});
-    }).then(function(value) {
+    web3.eth.getBalance(account, function(error, value) {
       var balance_element = document.getElementById("balance");
-      balance_element.innerHTML = value.valueOf();
-    }).catch(function(e) {
-      console.log(e);
-      self.setStatus("Error getting balance; see log.");
+      balance_element.innerHTML = web3.fromWei(value.valueOf());
     });
   },
 
-  sendCoin: function() {
+  createRegion: function() {
     var self = this;
 
-    var amount = parseInt(document.getElementById("amount").value);
-    var receiver = document.getElementById("receiver").value;
+    var name = document.getElementById("region-name").value;
+    var state = document.getElementById("region-state").value;
 
     this.setStatus("Initiating transaction... (please wait)");
 
-    var meta;
-    MetaCoin.deployed().then(function(instance) {
-      meta = instance;
-      return meta.sendCoin(receiver, amount, {from: account});
+    var codex;
+    Codex.deployed().then(function(instance) {
+      codex = instance;
+      return codex._createRegion("Test County Name","Test State Name", {from: account});
     }).then(function() {
       self.setStatus("Transaction complete!");
       self.refreshBalance();
+      self.loadRegions();
     }).catch(function(e) {
       console.log(e);
-      self.setStatus("Error sending coin; see log.");
+      self.setStatus("Error creating region");
     });
-  }
+  },
+
+  loadRegions: function() {
+      var self = this;
+
+      var codex;
+      Codex.deployed().then(function(instance) {
+          codex = instance;
+          return codex.getCodexRegionData(0);
+      }).then(function(value) {
+          $("table#region-table").append("<li>"+value+"</li>");
+
+          self.refreshBalance();
+      }).catch(function(e) {
+          console.log(e);
+          self.setStatus("Error getting regions");
+      });
+  },
+
+    loadRegions2: function() {
+        var self = this;
+
+        var codex;
+        Codex.deployed().then(function(instance) {
+            codex = instance;
+            return codex.getCodexRegionData(0, {from: account});
+        }).then(function(value) {
+            $("table#region-table").append("<li>"+value+"</li>");
+
+            self.refreshBalance();
+        }).catch(function(e) {
+            console.log(e);
+            self.setStatus("Error getting regions");
+        });
+    }
 };
 
 window.addEventListener('load', function() {

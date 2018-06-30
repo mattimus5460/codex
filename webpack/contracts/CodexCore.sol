@@ -37,6 +37,15 @@ contract CodexRegionManagerWrapper is CodexOwner{
         return CodexRegionManager(regions[index]).createdBy();
     }
 
+    function getCodexRegionName(uint index) view public returns (string) {
+        return CodexRegionManager(regions[index]).name();
+    }
+
+    function getCodexRegionData(uint index) view public returns (string, string, address) {
+        CodexRegionManager curRegion = CodexRegionManager(regions[index]);
+        return (curRegion.name(), curRegion.state(), curRegion.createdBy());
+    }
+
     function getCodexRegionCEO(uint index) view public returns (address) {
         return CodexRegionManager(regions[index]).ceoAddress();
     }

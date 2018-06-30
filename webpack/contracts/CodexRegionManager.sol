@@ -51,6 +51,9 @@ contract CodexRegionManager is CodexRegion {
     * account.
     */
     constructor(string _name, string _state) public {
+        require(bytes(_name).length > 0);
+        require(bytes(_state).length > 0);
+
         createdBy = tx.origin;
         name = _name;
         state = _state;

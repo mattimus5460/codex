@@ -45,6 +45,17 @@ contract('CodexCore', function (accounts) {
 
     });
 
+    it("should have proper region data", function () {
+        var codex;
+        return CodexCore.deployed().then(function (instance) {
+            codex = instance;
+            return codex.getCodexRegionData.call(0);
+        }).then(function (region) {
+            return assert.equal("Test County Name", region[0], "ceoAddress was incorrect");
+        })
+
+    });
+
     it("should add a tree to a region", function () {
         var codex;
         return CodexCore.deployed().then(function (instance) {
