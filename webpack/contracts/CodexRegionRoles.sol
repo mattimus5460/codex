@@ -2,6 +2,14 @@ pragma solidity ^0.4.24;
 
 contract CodexRegionRoles {
 
+    /*
+       Region Management
+       - manage roles for regions
+       - manage addresses for each role
+       - designated addresses will have ability to edit/delete bad information
+
+       */
+
     // This facet controls access control for a Codex Region.
     //
     // There are four roles managed here:

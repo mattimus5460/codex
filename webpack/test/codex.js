@@ -1,5 +1,5 @@
 var CodexCore = artifacts.require("./CodexCore.sol");
-var CodexRegion = artifacts.require("./CodexRegion.sol");
+var CodexRegion = artifacts.require("./CodexRegionManager.sol");
 
 
 contract('CodexCore', function (accounts) {
@@ -53,6 +53,17 @@ contract('CodexCore', function (accounts) {
             return codex.getCodexRegionTreesCount(0);
         }).then(function (regionTreeCount) {
             return assert.equal(1, regionTreeCount, "tree count incorrect");
+        })
+
+    });
+
+    it("should have the proper tree data", function () {
+        var codex;
+        return CodexCore.deployed().then(function (instance) {
+            codex = instance;
+            return codex._getTreeData(0, 0);
+        }).then(function (tree) {
+            return assert.equal("TestTreeId", tree, "tree count incorrect");
         })
 
     });

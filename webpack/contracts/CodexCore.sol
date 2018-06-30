@@ -1,17 +1,23 @@
 pragma solidity ^0.4.24;
 
 import "./CodexOwner.sol";
-import "./CodexRegion.sol";
+import "./CodexRegionManager.sol";
 
-contract CodexRegionManager is CodexOwner{
+contract CodexRegionManagerWrapper is CodexOwner{
 
-    /// Region data storage
+    /*
+     *  This contract contains functions to
+     *      manage the CodexRegionManagers
+     *
+     */
+
+    /// CodexRegionManager data storage
     address[] public regions;
 
     /// Create Region
     function _createRegion (string _name, string _state) public onlyOwner returns (uint256) {
 
-        CodexRegion _region = new CodexRegion(_name, _state);
+        CodexRegionManager _region = new CodexRegionManager(_name, _state);
 
         // Add to regions list storage
         uint256 newRegionArrayId = regions.push(_region) -1;
@@ -23,32 +29,38 @@ contract CodexRegionManager is CodexOwner{
         return regions.length;
     }
 
-    function getCodexRegion(uint index) view public returns (CodexRegion) {
-        return CodexRegion(regions[index]);
+    function getCodexRegion(uint index) view public returns (CodexRegionManager) {
+        return CodexRegionManager(regions[index]);
     }
 
     function getCodexRegionCreatedBy(uint index) view public returns (address) {
-        return CodexRegion(regions[index]).createdBy();
+        return CodexRegionManager(regions[index]).createdBy();
     }
 
     function getCodexRegionCEO(uint index) view public returns (address) {
-        return CodexRegion(regions[index]).ceoAddress();
+        return CodexRegionManager(regions[index]).ceoAddress();
     }
 
     function getCodexRegionTreesCount(uint index) view public returns (uint) {
-        return CodexRegion(regions[index]).treesCount();
+        return CodexRegionManager(regions[index]).treesCount();
     }
 }
 
 
-contract CodexBase is CodexRegionManager {
+contract CodexBase is CodexRegionManagerWrapper {
+
+    /*
+     *  This contract contains functions to
+     *      manage trees within CodexRegionManagers
+     *
+     */
 
     /// Create Tree
     function _createTree(string _treeId, uint regionId)
     public returns (uint256) {
 
         // Add to tree list storage
-        uint256 newTreeInfoArrayId = CodexRegion(regions[regionId]).createTree(_treeId);
+        uint256 newTreeInfoArrayId = CodexRegionManager(regions[regionId]).createTree(_treeId);
 
         return newTreeInfoArrayId;
     }
@@ -57,65 +69,62 @@ contract CodexBase is CodexRegionManager {
 
 
 contract CodexOwnership is CodexBase {
+
     /*
-    Claiming trees as an owner
-    - tree property owner needs a way to claim trees
+     *  This contract contains functions to
+     *      manage tree owners within CodexRegionManagers
+     *
+     */
 
-    Marking trees public or private
-    - public trees will be seen by more users and has more info available
-    - private trees will only have access by the owners and creators
-    */
-
+    /// Set Tree Owner
     function _setTreeOwnerForRegion(uint _regionId, address _ownerAddress, uint _treeId) public{
-        CodexRegion(regions[_regionId]).setTreeOwner(_ownerAddress, _treeId);
+        CodexRegionManager(regions[_regionId]).setTreeOwner(_ownerAddress, _treeId);
+    }
+
+    /*
+     *  This function can be used as a permissions check for tree edits
+     *      to be used before any other service attempts to edit the external tree data
+     *
+     *  The external services could call this with the active users account/address
+     *      and would prevent editing of the data if this check fails
+     */
+    function _canEditTree(uint _regionId, uint _treeId) public view returns (bool){
+        return CodexRegionManager(regions[_regionId]).canEditTree(tx.origin, _treeId);
     }
 
 }
 
-contract CodexValidationControl is CodexOwnership {
-/*
-    Validating existing trees
-    - tree property owner
-    - allow many people to validate the existing tree data
 
-    Tree Owner
-    - can edit their tree data but will undo validation state
-    - can make trees public or private
+contract CodexTeamManager is CodexOwnership {
+    /*
+     *  This contract contains functions to
+     *      manage team members within CodexRegionManagers
+     *
+     */
 
-    Teams
-    - trained users can go out and add new or validate existing trees
-
-    Team Management
-    - ability to manage addresses of verified actors in a region
- */
-
- }
-
- contract CodexCore is CodexValidationControl {
+}
 
 
-     /*
-        getTree functions
-        - retrieve trees by lat/long
-        - retrieve all trees for region
+contract CodexTreeValidation is CodexTeamManager {
+    /*
+     *  This contract contains functions to
+     *      validate existing trees as team members
+     *
+     */
+}
 
 
-    //Pulls all TreeInfo from a tree. Must keep private due to stack limits
-    function getTree(uint32 _uint32) view private returns (string, string, string, uint8, uint8, uint8, uint8, uint8, string, string, string, string) {
-        return (trees[_uint32].family, trees[_uint32].genus, trees[_uint32].species, trees[_uint32].height, trees[_uint32].canopy, trees[_uint32].dab, trees[_uint32].dbh, trees[_uint32].scaffold, trees[_uint32].fruit, trees[_uint32].leaves, trees[_uint32].water, trees[_uint32].soil);
+contract CodexCore is CodexTreeValidation {
+    /*
+     *  This contract is the main contract that would be deployed
+     *
+     */
+
+    /// Retrieve Tree Data
+    function _getTreeData(uint _treeId, uint _regionId)
+    public view returns (string) {
+        return CodexRegionManager(regions[_regionId]).getTreeData(_treeId);
     }
-
-    //Pulls all info that may be displayed due to stack limits
-    function searchTree(uint32 _uint32) view public returns (string, string, string, uint8, uint8, string, string) {
-        return (trees[_uint32].family, trees[_uint32].genus, trees[_uint32].species, trees[_uint32].height, trees[_uint32].canopy, trees[_uint32].fruit, trees[_uint32].leaves);
-    }
-
-    //Calls up a count of all trees listed in contract
-    function countTrees() view public returns (uint) {
-        return trees.length;
-    }
-
-*/
 
 }
 
