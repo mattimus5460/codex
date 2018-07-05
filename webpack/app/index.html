@@ -16,11 +16,20 @@
   </div>
 
   <div id="region-list">
-    <h1>Regions </h1>
+    <h1>Regions</h1>
     <span id="region-total"></span>
-    <table id="region-table">
+    <div id="region-table">
+
+    </div>
+
+    <span id="tree-total">tree</span>
+    <table id="tree-table">
 
     </table>
+
+    <label for="tree-id">Name:</label><input type="text" id="tree-id" placeholder="Tree Identifier"></input>
+    <br>
+    <button id="create-tree-button" onclick="App.createTreeForRegion()">Create Tree</button>
 
   </div>
 
